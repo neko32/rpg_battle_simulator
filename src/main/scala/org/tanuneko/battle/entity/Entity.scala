@@ -35,7 +35,7 @@ case class Entity(name: String) extends Actor with ActionStrategy with CommandIn
       sender() ! true
 
     case ExecCommand(cmds) =>
-      cmds.foreach(exec(_, roster))
+      cmds.foreach(exec(_, roster, turn))
       log.debug(s"***ROSTER UPDATED*** ${roster}")
 
     case Proceed =>
@@ -60,11 +60,8 @@ case class Entity(name: String) extends Actor with ActionStrategy with CommandIn
   }
 
   private def action = {
-    // expiry check
-
-    // then action
-    val cmd = doAction(status.get.name, teamName, roster, status.get, false)
-    roster = exec(cmd, roster)
+    val cmd = doAction(status.get.name, teamName, roster, status.get, false, turn)
+    roster = exec(cmd, roster, turn)
     broadcastAsync(cmd)
     turn += 1
   }

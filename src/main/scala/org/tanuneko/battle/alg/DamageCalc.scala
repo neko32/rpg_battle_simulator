@@ -9,9 +9,15 @@ object DamageCalc {
 
   private lazy val log = Logger(getClass)
 
-  def calc(o: Status, d: Status): Int = {
-    log.info(s"calculating damage - offense:${o.offense}, defense:${d.defense}")
-    val e = (o.offense - d.defense / 2) / 2
+  def calc(o: Status, d: Status, name: Option[String] = None): Int = {
+    val ov = o.offenseOverride.getOrElse(o.offense)
+    val dv = d.defenseOverride.getOrElse(d.defense)
+    if(name.isDefined) {
+      log.info(s"calculating damage - offense:${ov}, defense:${dv} - offense ${name}")
+    } else {
+      log.info(s"calculating damage - offense:${ov}, defense:${dv}")
+    }
+    val e = (ov - dv / 2) / 2
     e match {
       case x: Int if x < 1 => Random.nextInt(2)
       case x: Int if x >= 1 && x < 8 =>

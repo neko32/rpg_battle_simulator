@@ -19,6 +19,7 @@ class BattleSession extends Actor with CommandInterpreter {
   var roster: Map[String, Team] = Map.empty
   var winnerTeam: Option[String] = None
   val onlyOnceWinnerNotice = new AtomicInteger(0)
+  var turn: Int = 0
 
   override def receive = entry
 
@@ -64,10 +65,11 @@ class BattleSession extends Actor with CommandInterpreter {
           context.become(gameOver)
           context.parent ! GameOver
         }
+        turn += 1
       }
 
     case ExecCommand(cmds) =>
-      cmds.foreach(exec(_, roster))
+      cmds.foreach(exec(_, roster, turn))
 
     case Dump =>
       log.info("**** DUMPING **** @InGame::Dump")

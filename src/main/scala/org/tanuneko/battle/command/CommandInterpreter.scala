@@ -8,11 +8,12 @@ trait CommandInterpreter {
 
   private lazy val log = Logger(getClass)
 
-  def exec(cmd: Command, roster: Map[String, Team]): Map[String, Team] = {
+  def exec(cmd: Command, roster: Map[String, Team], currentTurn: Int): Map[String, Team] = {
     val updateTarget = roster(cmd.toTeamName).members.find(_._1 == cmd.toEntName)
     if(updateTarget.isEmpty) roster
     else {
       val newStat = updateTarget.get._2.status
+      newStat.evalExpiry(currentTurn)
       cmd.cmdType match {
         case CommandType.UPDATE_HP =>
           val newHp = cmd.value.asInstanceOf[Int]
@@ -25,11 +26,12 @@ trait CommandInterpreter {
 
         case CommandType.UPDATE_INT_STATUS =>
           val newVal = cmd.value.asInstanceOf[Int]
-          ReflectionUtils.updateVariableViaReflection(newStat, newVal)(cmd.attrName) match {
-            case Right(_) => log.debug(s"${cmd.attrName} was updated via reflection util")
-            case Left(e) => log.error(e.getMessage, e)
+          val result = ReflectionUtils.updateVariableViaReflection(newStat, Some(newVal))(cmd.attrName)
+          result match {
+            case Right(_) =>
+              newStat.overrideExpiry += (currentTurn + cmd.expiry -> cmd.attrName)
+              roster(cmd.toTeamName).members(cmd.toEntName).status = newStat
           }
-          roster(cmd.toTeamName).members(cmd.toEntName).status = newStat
           roster
 
         case CommandType.DYING =>

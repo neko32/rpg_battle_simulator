@@ -36,7 +36,7 @@ class WaitTimeCalcSpec extends AsyncWordSpec {
       defense = 0,
       power = 20,
       agility = agility,
-      inteligence = 10,
+      intelligence = 10,
       luck = luck,
       exp = 0L,
       gold = 0L

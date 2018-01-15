@@ -36,7 +36,7 @@ object Runner {
       case Left(e) => throw e
       case _ => log.debug("Registration done")
     }
-    register("Red", "Sagat", sampleEntity("Sagat", 60, Jobs.Magician)) match {
+    register("Red", "Sagat", sampleEntity("Sagat", 160, Jobs.Fighter)) match {
       case Left(e) => throw e
       case _ => log.debug("Registration done")
     }
@@ -83,7 +83,7 @@ object Runner {
     defense = 104,
     power = 20,
     agility = 10,
-    inteligence = 10,
+    intelligence = 10,
     luck = 5,
     exp = 0L,
     gold = 0L

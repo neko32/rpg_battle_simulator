@@ -6,6 +6,8 @@ import scala.reflect.runtime.universe._
 
 class ReflectionUtilsSpec extends AsyncWordSpec {
 
+  var testVal: Option[Int] = Some(100)
+
   "ReflecionUtils" should {
 
     "allow to update field by name" in {
@@ -13,7 +15,7 @@ class ReflectionUtilsSpec extends AsyncWordSpec {
       ReflectionUtils.updateVariableViaReflection(s, 5000)("offense")
       ReflectionUtils.updateVariableViaReflection(s, 32L)("exp")
       ReflectionUtils.updateVariableViaReflection(s, 300)("orga")
-      assert(s.offense === 5000)
+      assert(s.offenseOverride === Some(5000) && s.offense === 76)
       assert(s.exp === 32L)
     }
 
@@ -39,7 +41,7 @@ class ReflectionUtilsSpec extends AsyncWordSpec {
       defense = 104,
       power = 20,
       agility = 10,
-      inteligence = 10,
+      intelligence = 10,
       luck = 5,
       exp = 0L,
       gold = 0L

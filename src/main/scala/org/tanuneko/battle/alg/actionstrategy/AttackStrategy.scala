@@ -14,15 +14,27 @@ trait ActionStrategy extends JobSpecificOpponentPick with GenericActions {
 
   private lazy val log = Logger(getClass)
 
-  def doAction(name: String, myTeamName: String, roster: Map[String, Team], status: Status, includeDead: Boolean, specialFlag: Option[Any] = None)
+  def doAction(name: String,
+               myTeamName: String,
+               roster: Map[String, Team],
+               status: Status,
+               includeDead: Boolean,
+               currentTurn: Int,
+               specialFlag: Option[Any] = None)
   : Command = {
     status.job match {
-      case Jobs.Fighter => doFighterAction(name, myTeamName, roster, status, includeDead)
-      case Jobs.Magician => doMagicianAction(name, myTeamName, roster, status, includeDead)
+      case Jobs.Fighter => doFighterAction(name, myTeamName, roster, status, includeDead, currentTurn, specialFlag)
+      case Jobs.Magician => doMagicianAction(name, myTeamName, roster, status, includeDead, currentTurn, specialFlag)
     }
   }
 
-  def doFighterAction(name: String, myTeamName: String, roster: Map[String, Team], status: Status, includeDead: Boolean, specialFlag: Option[Any] = None)
+  def doFighterAction(name: String,
+                      myTeamName: String,
+                      roster: Map[String, Team],
+                      status: Status,
+                      includeDead: Boolean,
+                      currentTurn: Int,
+                      specialFlag: Option[Any] = None)
   : Command = {
     // move action from jobs to status
     // and define different action per action
@@ -35,13 +47,18 @@ trait ActionStrategy extends JobSpecificOpponentPick with GenericActions {
       if(v <= 80) {
         physicalRegularAttack(myTeamName, opponents.get.team, status, opponents.get.prof.status)
       } else {
-        physicalRegularAttack(myTeamName, opponents.get.team, status, opponents.get.prof.status)
-        //guard(status.name, status)
+        guard(myTeamName, status, currentTurn)
       }
     }
   }
 
-  def doMagicianAction(name: String, myTeamName: String, roster: Map[String, Team], status: Status, includeDead: Boolean): Command = {
+  def doMagicianAction(name: String,
+                       myTeamName: String,
+                       roster: Map[String, Team],
+                       status: Status,
+                       includeDead: Boolean,
+                       currentTurn: Int,
+                       specialFlag: Option[Any] = None): Command = {
     val opponents = pick(myTeamName, roster, status, includeDead)
     if(opponents.isEmpty) {
       log.debug(s"${name}: no action taken as no opponent is found")
@@ -60,20 +77,21 @@ trait GenericActions {
   def physicalRegularAttack(otName: String, dtName: String, o: Status, d: Status) = {
     log.info(s"${o.name} is attacking ${d.name}[Physical Regular Attack]")
     val prevHp = d.hp
-    val curHp = prevHp - DamageCalc.calc(o, d)
+    val curHp = prevHp - DamageCalc.calc(o, d, Some(o.name))
     d.hp = if(curHp < 0) 0 else curHp
     log.info(s"${d.name} HP: ${prevHp} -> ${d.hp}")
     Command(otName, o.name, dtName, d.name, CommandType.UPDATE_HP, "hp", d.hp)
   }
 
-  /*
-  def guard(selfName: String, selfStatus: Status) = {
-    log.info("s${selfName} is trying to guard[Guard]")
+  def guard(teamName: String, selfStatus: Status, curTurn: Int) = {
+    log.info(s"${selfStatus.name} is trying to guard[Guard]")
     val prevDefense = selfStatus.defense
-    val curDefense = PercentUtils.percentage(prevDefense, 15)
-    selfStatus.defense = curDefense
-    log.info(s"${selfName} Defense: ${prevDefense} -> ${curDefense}")
-    Command()
+    val increaseNum = PercentUtils.percentage(prevDefense, 15)
+    val curDefense = prevDefense + increaseNum
+    //selfStatus.defenseOverride = Some(curDefense)
+    //selfStatus.overrideExpiry += (curTurn + 1 -> "defense")
+    log.info(s"${selfStatus.name} Defense: ${prevDefense} -> ${curDefense}")
+    Command(teamName, selfStatus.name, teamName, selfStatus.name,
+            CommandType.UPDATE_INT_STATUS, "defense", curDefense)
   }
-  */
 }

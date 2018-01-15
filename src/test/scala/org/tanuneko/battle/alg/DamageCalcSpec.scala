@@ -40,7 +40,7 @@ class DamageCalcSpec extends WordSpec {
       defense = defense,
       power = 20,
       agility = 10,
-      inteligence = 10,
+      intelligence = 10,
       luck = 5,
       exp = 0L,
       gold = 0L
